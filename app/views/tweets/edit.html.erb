@@ -1,0 +1,58 @@
+<div class="book-container">
+  <% @sheets.each_with_index do |sheet, index| %>
+    <div class="sheet" id="sheet-<%= index %>">
+
+      <!-- ========== 表面 (右側のページ) ========== -->
+      <div class="face front <%= 'cover-face' if sheet.dig(:front, :type) == 'cover' %>">
+        <div class="page-content">
+          <% if sheet.dig(:front, :type) == 'cover' %>
+            <!-- 表紙デザイン -->
+            <div class="cover-design">
+              <h1><%= sheet.dig(:front, :title) %></h1>
+              <p><%= sheet.dig(:front, :subtitle) %></p>
+            </div>
+
+          <% elsif sheet.dig(:front, :tweet).present? %>
+            <!-- 通常ページ (ツイート表示) -->
+            <% tweet = sheet[:front][:tweet] %>
+            <div class="tweet-card">
+              <span class="page-number"><%= index * 2 + 1 %></span>
+              <p class="tweet-text"><%= tweet.content %></p>
+              <small><%= tweet.created_at.strftime('%Y/%m/%d') %></small>
+            </div>
+
+          <% else %>
+            <!-- 白紙ページ -->
+            <div class="blank-page"></div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- ========== 裏面 (左側のページ) ========== -->
+      <div class="face back <%= 'back-cover-face' if sheet.dig(:back, :type) == 'back_cover' %>">
+        <div class="page-content">
+          <% if sheet.dig(:back, :type) == 'back_cover' %>
+            <!-- 裏表紙デザイン -->
+            <div class="back-cover-design">
+              <p><%= sheet.dig(:back, :text) || 'Fin' %></p>
+            </div>
+
+          <% elsif sheet.dig(:back, :tweet).present? %>
+            <!-- 通常ページ (ツイート表示) -->
+            <% tweet = sheet[:back][:tweet] %>
+            <div class="tweet-card">
+              <span class="page-number"><%= index * 2 + 2 %></span>
+              <p class="tweet-text"><%= tweet.content %></p>
+              <small><%= tweet.created_at.strftime('%Y/%m/%d') %></small>
+            </div>
+
+          <% else %>
+            <!-- 白紙ページ -->
+            <div class="blank-page"></div>
+          <% end %>
+        </div>
+      </div>
+
+    </div>
+  <% end %>
+</div>

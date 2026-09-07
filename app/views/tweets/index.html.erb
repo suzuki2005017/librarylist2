@@ -1,0 +1,135 @@
+<%
+  # 1. @tweetsの並び順を保証し、データ配列を作成
+  raw_tweets = @tweets.to_a
+
+  # 2. シート（紙）ごとに [裏面(左), 表面(右)] のペアを組む
+  # 1枚目: [図書館1 (裏/左), 表紙 (表/右)]
+  sheets = [
+    {
+      back:  { type: 'tweet', data: raw_tweets[0] },
+      front: { type: 'cover' }
+    }
+  ]
+
+  # 2枚目以降: [図書館 (裏/左), 図書館 (表/右)]
+  idx = 1
+  while idx < raw_tweets.size
+    left_tweet  = raw_tweets[idx]
+    right_tweet = raw_tweets[idx + 1] # 奇数個の場合は nil
+
+    sheets << {
+      back:  left_tweet  ? { type: 'tweet', data: left_tweet }  : { type: 'empty' },
+      front: right_tweet ? { type: 'tweet', data: right_tweet } : { type: 'empty' }
+    }
+    idx += 2
+  end
+
+  # 最後のシート: [裏表紙 (裏/左), 空白 (表/右)]
+  sheets << {
+    back:  { type: 'backcover' },
+    front: { type: 'empty' }
+  }
+%>
+
+<style>
+  /* 各シートの重ね合わせ（Zインデックス）と動的回転制御 */
+  <% sheets.each_with_index do |sheet, i| %>
+    .sheet-<%= i %> {
+      z-index: <%= sheets.size - i %>;
+    }
+    #flip-<%= i %>:checked ~ .book-viewport .sheet-<%= i %> {
+      transform: rotateY(-180deg);
+      z-index: <%= 10 + i %> !important;
+    }
+  <% end %>
+</style>
+
+<div class="index-book-wrapper">
+  <form class="book-form">
+    <% sheets.each_with_index do |sheet, i| %>
+      <input type="checkbox" id="flip-<%= i %>" class="flip-checkbox">
+    <% end %>
+
+    <div class="book-viewport">
+      <div class="book-spine-center"></div>
+
+      <% sheets.each_with_index do |sheet, i| %>
+        <div class="sheet sheet-<%= i %>">
+          
+          <!-- ========== 表面（めくる前に右側に見えるページ） ========== -->
+          <div class="face front <%= 'cover-face' if sheet.dig(:front, :type) == 'cover' %>">
+            <div class="page-content">
+              <% if sheet.dig(:front, :type) == 'cover' %>
+                <!-- 表紙 -->
+                <div class="cover-design">
+                  <div class="header-crest">⚜️</div>
+                  <h1 class="index-title">LIBRARY ARCHIVE</h1>
+                  <p class="index-subtitle">蔵書目録・作業空間記録</p>
+                </div>
+              <% elsif sheet.dig(:front, :type) == 'tweet' %>
+                <!-- 右ページ：図書館 -->
+                <% tweet = sheet[:front][:data] %>
+                <div class="page-tweet-design">
+                  <div class="tweet-photo-frame">
+                    <% if tweet.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
+                      <img src="<%= tweet.photo %>" class="page-photo" alt="<%= tweet.name %>">
+                    <% elsif tweet.respond_to?(:image) && tweet.image.attached? %>
+                      <%= image_tag tweet.image, class: "page-photo" %>
+                    <% else %>
+                      <div class="page-photo-placeholder"><span class="icon">🏛️</span></div>
+                    <% end %>
+                  </div>
+                  <h2 class="page-library-name"><%= tweet.name %></h2>
+                  <%= link_to "詳細を開く", tweet_path(tweet), class: "btn-detail" %>
+                </div>
+              <% else %>
+                <div class="page-empty-design"><div class="ornament">❦</div></div>
+              <% end %>
+            </div>
+
+            <!-- 次へ（右ページをめくる）ボタン -->
+            <label for="flip-<%= i %>" class="nav-btn nav-next" title="ページをめくる">▶</label>
+          </div>
+
+          <!-- ========== 裏面（めくった後に左側に見えるページ） ========== -->
+          <div class="face back <%= 'backcover-face' if sheet.dig(:back, :type) == 'backcover' %>">
+            <div class="page-content">
+              <% if sheet.dig(:back, :type) == 'backcover' %>
+                <!-- 裏表紙 -->
+                <div class="backcover-design">
+                  <div class="header-crest">⚜️</div>
+                  <h2 class="backcover-title">THE END</h2>
+                  <p class="backcover-desc">全ての蔵書録の終わり</p>
+                  <%= link_to "＋ 新規図書館を登録する", new_tweet_path, class: "btn-new-tweet-book" %>
+                  <button type="reset" class="btn-reset">表紙に戻る ↺</button>
+                </div>
+              <% elsif sheet.dig(:back, :type) == 'tweet' %>
+                <!-- 左ページ：図書館 -->
+                <% tweet = sheet[:back][:data] %>
+                <div class="page-tweet-design">
+                  <div class="tweet-photo-frame">
+                    <% if tweet.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
+                      <img src="<%= tweet.photo %>" class="page-photo" alt="<%= tweet.name %>">
+                    <% elsif tweet.respond_to?(:image) && tweet.image.attached? %>
+                      <%= image_tag tweet.image, class: "page-photo" %>
+                    <% else %>
+                      <div class="page-photo-placeholder"><span class="icon">🏛️</span></div>
+                    <% end %>
+                  </div>
+                  <h2 class="page-library-name"><%= tweet.name %></h2>
+                  <%= link_to "詳細を開く", tweet_path(tweet), class: "btn-detail" %>
+                </div>
+              <% else %>
+                <div class="page-empty-design"><div class="ornament">❦</div></div>
+              <% end %>
+            </div>
+
+            <!-- 前へ（左ページを戻す）ボタン -->
+            <label for="flip-<%= i %>" class="nav-btn nav-prev" title="ページを戻す">◀</label>
+          </div>
+
+        </div>
+      <% end %>
+    </div>
+  </form>
+</div>

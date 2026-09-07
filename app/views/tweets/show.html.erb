@@ -1,0 +1,126 @@
+<div class="show-wrapper">
+  <!-- 戻るボタン -->
+  <div class="show-nav-top">
+    <%= link_to "← 蔵書目録を閉じる", tweets_path, class: "btn-back-to-list" %>
+  </div>
+
+  <!-- 1. 見開きの重厚な本本体 -->
+  <div class="show-book-container">
+    <div class="show-book-spine"></div>
+
+    <!-- 左ページ：基本情報＆写真 -->
+    <div class="page page-left">
+      <div class="page-ornament-top">⚜️</div>
+      <div class="page-header">
+        <span class="book-tag">RECORD NO.<%= @tweet.id %></span>
+      </div>
+
+      <h1 class="show-title"><%= @tweet.name %></h1>
+
+      <!-- 写真エリア -->
+      <% if @tweet.photo.present? && @tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
+        <div class="show-photo-frame">
+          <img src="<%= @tweet.photo %>" alt="<%= @tweet.name %>" class="show-photo">
+        </div>
+      <% elsif @tweet.respond_to?(:image) && @tweet.image.attached? %>
+        <div class="show-photo-frame">
+          <%= image_tag @tweet.image, class: "show-photo" %>
+        </div>
+      <% elsif @tweet.photo.present? %>
+        <div class="show-photo-frame photo-link-box">
+          <p class="photo-link-title">📍 位置情報 / 外部リンク</p>
+          <%= link_to "Google Maps等で開く ↗", @tweet.photo, target: "_blank", rel: "noopener", class: "photo-link" %>
+        </div>
+      <% else %>
+        <div class="show-photo-frame photo-placeholder-box">
+          <span class="placeholder-icon">🏛️</span>
+        </div>
+      <% end %>
+
+      <div class="show-meta-container">
+        <div class="show-meta-item">
+          <span class="meta-label">📍 所在地</span>
+          <p class="meta-value"><%= @tweet.place %></p>
+        </div>
+
+        <div class="show-meta-item">
+          <span class="meta-label">🚶 交通案内</span>
+          <p class="meta-value"><%= @tweet.access %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右ページ：設備・環境情報 -->
+    <div class="page page-right">
+      <div class="page-ornament-top">📜</div>
+      <h2 class="show-subtitle">施設・設備詳細</h2>
+      
+      <div class="show-meta-container">
+        <div class="show-meta-item">
+          <span class="meta-label">🕒 開館時間</span>
+          <p class="meta-value"><%= @tweet.time %></p>
+        </div>
+
+        <div class="show-meta-item">
+          <span class="meta-label">📶 通信環境 (Wi-Fi)</span>
+          <p class="meta-value"><%= @tweet.net %></p>
+        </div>
+
+        <div class="show-meta-item">
+          <span class="meta-label">🔌 電源設備</span>
+          <p class="meta-value"><%= @tweet.outlet %></p>
+        </div>
+      </div>
+
+      <!-- 操作ボタン -->
+      <div class="show-actions">
+        <%= link_to "編集する", edit_tweet_path(@tweet), class: "btn-action btn-edit" %>
+        <%= button_to "削除する", tweet_path(@tweet), method: :delete, form: { data: { turbo_confirm: "本当に削除しますか？" } }, data: { confirm: "本当に削除しますか？" }, class: "btn-action btn-delete" %>
+      </div>
+      <div class="page-ornament-bottom">❦</div>
+    </div>
+  </div>
+
+  <!-- 2. 本の下に独立して配置する枠 -->
+  <div class="standalone-section">
+    <!-- おすすめポイント -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <span class="card-header-icon">💡</span>
+        <h3 class="theme-card-title">特記事項・おすすめ</h3>
+      </div>
+      <div class="theme-card-content">
+        <% if @tweet.recommend.present? %>
+          <%= simple_format(@tweet.recommend) %>
+        <% else %>
+          <p class="empty-placeholder">記載はありません。</p>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- コメントエリア -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <span class="card-header-icon">💬</span>
+        <h3 class="theme-card-title">閲覧者記録 (コメント)</h3>
+      </div>
+      <div class="theme-card-content">
+        <% if @tweet.respond_to?(:comments) && @tweet.comments.present? %>
+          <% @tweet.comments.each do |comment| %>
+            <div class="theme-comment-item">
+              <div class="theme-comment-meta">
+                <span class="theme-comment-user">
+                  👤 <%= comment.user.nickname if comment.respond_to?(:user) && comment.user && comment.user.respond_to?(:nickname) %>
+                </span>
+                <span class="theme-comment-date"><%= comment.created_at.strftime("%Y/%m/%d %H:%M") %></span>
+              </div>
+              <p class="theme-comment-text"><%= comment.text if comment.respond_to?(:text) %></p>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="empty-placeholder">まだコメントはありません。</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

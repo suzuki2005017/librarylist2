@@ -1,0 +1,232 @@
+/* 全体のベース設定（シックな書斎風背景） */
+body {
+  background-color: #a9c269b8;
+  color: #2b251f;
+  font-family: "Shippori Mincho", "游明朝", YuMincho, "ヒラギノ明朝 ProN W3", serif;
+  margin: 0;
+  padding: 50px 20px;
+}
+
+.title-container {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+h1 {
+  font-size: 2.2rem;
+  color: #1a1410;
+  border-bottom: 2px solid #5c4a3d;
+  display: inline-block;
+  padding-bottom: 6px;
+  letter-spacing: 0.1em;
+}
+
+.new-link-container {
+  text-align: center;
+  margin-bottom: 45px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  align-items: center;
+}
+
+.new-link-container a, .new-link-container button {
+  background-color: #3d3127;
+  color: #f7f4ee;
+  padding: 9px 22px;
+  border-radius: 3px;
+  text-decoration: none;
+  border: 1px solid #1a1410;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+
+.new-link-container a:hover, .new-link-container button:hover {
+  background-color: #241c16;
+}
+
+/* ★中央寄せコンテナ（本の縦サイズ感に最適化）★ */
+.book-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;            /* 本同士の十分な隙間 */
+  max-width: 860px;     /* 本らしい重厚感のある横幅 */
+  margin: 0 auto;
+}
+
+/* ★リアルな本（ハードカバー表紙・紙の重なり・見開き立体感）★ */
+.book-spread {
+  display: flex;
+  background-color: #f7f3e8; /* 和紙・古紙のような温かみのある紙色 */
+  border-radius: 4px;
+  position: relative;
+  
+  /* 革表紙（台紙）のフチを見せる多重シャドウ */
+  border: 12px solid #3d2b1f; /* レザー調ハードカバーの台紙 */
+  outline: 1px solid #1f140e;
+  
+  /* 重厚な落ち影＋本の開きの立体影 */
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.35), 
+    0 5px 15px rgba(0, 0, 0, 0.2),
+    inset 0 0 40px rgba(180, 160, 130, 0.3);
+}
+
+/* 本の「背表紙（中央の折り目・溝）」 */
+.book-spread::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 100%;
+  /* 溝の深みと膨らみを再現するグラデーション */
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.05) 35%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(0, 0, 0, 0.05) 65%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* 左右ページ側面に「束ねられた紙の重なり（側面ページ感）」を作る */
+.book-spread::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: -8px;
+  right: -8px;
+  background: #e6dfcc;
+  border-left: 2px solid #b8ad98;
+  border-right: 2px solid #b8ad98;
+  z-index: -1;
+  border-radius: 2px;
+}
+
+/* ページ共通スタイル */
+.book-page {
+  flex: 1;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* 左ページ（写真＋タイトル） */
+.page-left {
+  /* 中央に向かってわずかに影が入る（めくりの影） */
+  background: linear-gradient(to right, #fbf8f0 92%, #ebe4d3 100%);
+  border-right: 1px solid #d1c7b7;
+  align-items: center;
+  text-align: center;
+}
+
+/* 左ページの額縁風写真枠 */
+.book-image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border: 4px solid #fff;
+  outline: 1px solid #c2b5a3;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.15);
+  border-radius: 1px;
+  margin-bottom: 18px;
+}
+
+.no-image-placeholder {
+  width: 100%;
+  height: 250px;
+  background-color: #e8e1d1;
+  border: 1px dashed #a89a85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7a6e5d;
+  margin-bottom: 18px;
+}
+
+.library-name {
+  font-size: 1.35rem;
+  color: #241c16;
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  border-bottom: 1px dashed #b5a895;
+  padding-bottom: 6px;
+  width: 100%;
+}
+
+/* 右ページ（詳細テキスト＋アクション） */
+.page-right {
+  /* 左側（本の中央）からの影 */
+  background: linear-gradient(to left, #fbf8f0 92%, #ebe4d3 100%);
+  justify-content: space-between;
+}
+
+.book-details p {
+  margin: 8px 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #3b3026;
+}
+
+.like-section {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed #c2b5a3;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.library-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #3d3127;
+}
+
+.library-actions a {
+  color: #3d3127;
+  text-decoration: underline;
+  font-size: 0.88rem;
+  font-weight: bold;
+}
+
+.library-actions button {
+  background-color: #8c3b30; /* 落ち着いた朱赤 */
+  color: #f7f4ee;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.library-actions button:hover {
+  background-color: #6e2c23;
+}
+
+/* スマホ対応 */
+@media (max-width: 700px) {
+  .book-spread {
+    border-width: 6px;
+  }
+  .book-spread::after, .book-spread::before {
+    display: none;
+  }
+  .page-left {
+    border-right: none;
+    border-bottom: 1px dashed #c2b5a3;
+  }
+}
