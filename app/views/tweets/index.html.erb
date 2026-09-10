@@ -108,7 +108,7 @@
                 <% tweet = sheet[:back][:data] %>
                 <div class="page-tweet-design">
                   <div class="tweet-photo-frame">
-                    <% if tweet.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
+                    <% if tweet&.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
                       <img src="<%= tweet.photo %>" class="page-photo" alt="<%= tweet.name %>">
                     <% elsif tweet.respond_to?(:image) && tweet.image.attached? %>
                       <%= image_tag tweet.image, class: "page-photo" %>
