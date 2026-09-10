@@ -62,6 +62,7 @@ end
 gem 'cloudinary'
 gem 'activestorage-cloudinary-service'
 gem 'devise'
+gem "json", "~> 2.21.2"
 # PostgreSQL → 本番用
 group :production do
   gem 'pg'
