@@ -106,6 +106,7 @@
               <% elsif sheet.dig(:back, :type) == 'tweet' %>
                 <!-- 左ページ：図書館 -->
                 <% tweet = sheet[:back][:data] %>
+                <% next if tweet.nil? %>
                 <div class="page-tweet-design">
                   <div class="tweet-photo-frame">
                     <% if tweet&.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
