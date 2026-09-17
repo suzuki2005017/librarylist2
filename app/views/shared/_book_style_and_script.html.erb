@@ -1,0 +1,328 @@
+<style>
+  /* 全体レイアウト */
+  .index-book-wrapper {
+    min-height: 100vh;
+    background: #0f0c0a;
+    color: #e8ded1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    font-family: serif;
+    position: relative;
+  }
+
+  /* ヘッダーナビゲーション */
+  .book-header-nav {
+    width: 100%;
+    max-width: 900px;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 20px !important;
+    background: #1a1410 !important;
+    border: 1px solid #b89b5e !important;
+    border-radius: 6px !important;
+    margin-bottom: 25px !important;
+    box-sizing: border-box !important;
+    position: relative;
+    z-index: 300;
+  }
+  .header-logo {
+    color: #d4af37;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+  }
+  .header-auth {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+  }
+  .user-email {
+    font-size: 0.85rem;
+    color: #a39281;
+    white-space: nowrap;
+  }
+  .btn-header {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 14px !important;
+    font-size: 0.85rem !important;
+    text-decoration: none !important;
+    border-radius: 4px !important;
+    transition: all 0.2s !important;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+  }
+  .btn-new { background: #d4af37 !important; color: #120d09 !important; border: 1px solid #d4af37 !important; }
+  .btn-new:hover { background: #b89b5e !important; }
+  .btn-login { background: transparent !important; color: #d4af37 !important; border: 1px solid #b89b5e !important; }
+  .btn-login:hover { background: #b89b5e !important; color: #120d09 !important; }
+  .btn-register { background: #5c4a38 !important; color: #fff !important; border: 1px solid #8c7355 !important; }
+  .btn-logout { background: transparent !important; color: #a39281 !important; border: 1px solid #5c4a38 !important; }
+
+  /* 本とボタンを包むメインエリア */
+  .book-container-outer {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    position: relative !important;
+    margin: 10px auto 40px auto !important;
+    width: 100% !important;
+    max-width: 1100px !important;
+  }
+
+  /* 左右ナビゲーションボタン */
+  .side-nav-btn {
+    background: linear-gradient(135deg, #d4af37 0%, #b89b5e 100%) !important;
+    color: #120d09 !important;
+    border: 1px solid #d4af37 !important;
+    padding: 12px 20px !important;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+    border-radius: 30px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6) !important;
+    transition: all 0.2s !important;
+    white-space: nowrap !important;
+    z-index: 300 !important;
+  }
+  .side-nav-btn:hover {
+    background: #ffffff !important;
+    color: #120d09 !important;
+    transform: translateY(-2px);
+  }
+  .side-nav-btn:active {
+    transform: translateY(0);
+  }
+
+  /* 中央ページ表示バー */
+  .page-indicator-bar {
+    text-align: center;
+    color: #d4af37;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    letter-spacing: 0.05em;
+  }
+
+  /* 3D 本構造 */
+  .book-viewport {
+    width: 860px;
+    height: 540px;
+    perspective: 2000px;
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+  .book-spine {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    transform: translateX(-50%);
+    background: linear-gradient(to right, #0a0806 0%, #2b221d 50%, #0a0806 100%);
+    z-index: 200;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+  }
+  .book-body {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+  }
+  .sheet {
+    position: absolute;
+    width: 430px;
+    height: 100%;
+    right: 0;
+    top: 0;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+    cursor: pointer;
+  }
+  .sheet.flipped {
+    transform: rotateY(-180deg);
+  }
+
+  /* 面の共通スタイル */
+  .face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    box-sizing: border-box;
+    padding: 30px;
+    overflow: hidden;
+  }
+  .face.front { z-index: 2; }
+  .face.back { transform: rotateY(180deg); z-index: 1; }
+
+  /* 本文（羊皮紙風） */
+  .inner-page {
+    background-color: #ebdcb9;
+    color: #2b1f17;
+    border: 1px solid #c4b08d;
+    box-shadow: inset 0 0 30px rgba(139, 115, 85, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .inner-title {
+    font-size: 1.2rem;
+    color: #5c4a38;
+    text-align: center;
+    border-bottom: 1px double #b89b5e;
+    padding-bottom: 6px;
+    margin-top: 0;
+  }
+  .spot-photo-frame {
+    width: 100%;
+    height: 180px;
+    border: 1px solid #b89b5e;
+    background: #110d0a;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+  .spot-photo { width: 100%; height: 100%; object-fit: cover; }
+  .photo-placeholder {
+    width: 100%; height: 100%; background: #1f1813;
+    display: flex; align-items: center; justify-content: center; font-size: 3rem;
+  }
+  .spot-name { font-size: 1.2rem; color: #2b1f17; margin: 8px 0 4px; text-align: center; }
+  .spot-place { font-size: 0.85rem; color: #6b5540; text-align: center; margin: 0 0 8px; }
+  .info-group p { margin: 6px 0; font-size: 0.85rem; color: #2b1f17; }
+  .recommend-box {
+    background: rgba(255,255,255,0.4);
+    border-left: 3px solid #b89b5e;
+    padding: 8px;
+    border-radius: 2px;
+    font-size: 0.85rem;
+  }
+  .page-number { text-align: center; font-size: 0.8rem; color: #8c7355; margin-top: 5px; }
+
+  /* 統一された表紙・裏表紙スタイル */
+  .cover-front, .cover-back {
+    background: linear-gradient(135deg, #2b1a0e 0%, #170d07 100%) !important;
+    color: #d4af37 !important;
+    border: 3px solid #b89b5e !important;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .cover-border {
+    border: 2px double #b89b5e;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .gold-icon { font-size: 3rem; margin-bottom: 10px; }
+  .book-main-title { font-size: 1.8rem; color: #d4af37; margin: 0 0 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+  .book-sub-title { font-size: 0.8rem; color: #b89b5e; letter-spacing: 0.1em; }
+  .click-hint { font-size: 0.8rem; color: #a39281; margin-top: 20px; }
+
+  /* 詳細ページへ飛ぶボタン */
+  .action-link-container {
+    margin-top: 10px;
+    text-align: center;
+  }
+  .btn-detail-link {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    background: #5c4a38;
+    color: #ffffff !important;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: 1px solid #b89b5e;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: background 0.2s;
+  }
+  .btn-detail-link:hover {
+    background: #d4af37;
+    color: #120d09 !important;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    initFlipbook();
+  });
+
+  document.addEventListener("turbo:load", () => {
+    initFlipbook();
+  });
+
+  function initFlipbook() {
+    const sheets = Array.from(document.querySelectorAll(".sheet"));
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const pageIndicator = document.getElementById("page-indicator");
+
+    if (!sheets.length) return;
+
+    let currentSheetIndex = 0;
+
+    function updatePageIndicator() {
+      if (currentSheetIndex === 0) {
+        pageIndicator.textContent = "表紙";
+      } else if (currentSheetIndex === sheets.length) {
+        pageIndicator.textContent = "裏表紙";
+      } else {
+        pageIndicator.textContent = `ページ ${currentSheetIndex} / ${sheets.length - 1}`;
+      }
+    }
+
+    function flipNext() {
+      if (currentSheetIndex < sheets.length) {
+        sheets[currentSheetIndex].classList.add("flipped");
+        currentSheetIndex++;
+        updatePageIndicator();
+      }
+    }
+
+    function flipPrev() {
+      if (currentSheetIndex > 0) {
+        currentSheetIndex--;
+        sheets[currentSheetIndex].classList.remove("flipped");
+        updatePageIndicator();
+      }
+    }
+
+    if (nextBtn) nextBtn.onclick = flipNext;
+    if (prevBtn) prevBtn.onclick = flipPrev;
+
+    sheets.forEach((sheet, idx) => {
+      sheet.onclick = (e) => {
+        if (e.target.closest("a, button, input, textarea")) return;
+
+        if (sheet.classList.contains("flipped")) {
+          if (idx === currentSheetIndex - 1) flipPrev();
+        } else {
+          if (idx === currentSheetIndex) flipNext();
+        }
+      };
+    });
+
+    updatePageIndicator();
+  }
+</script>

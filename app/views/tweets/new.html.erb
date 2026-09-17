@@ -1,40 +1,145 @@
-<div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="auth-header">
-      <span class="auth-sub-title">A COLLECTION OF LIBRARIES</span>
-      <h1 class="auth-title">ログイン</h1>
-      <div class="auth-divider">❖</div>
+<div class="new-container">
+  <div class="new-card">
+    
+    <div class="new-top-actions">
+      <%= link_to "◀ 一覧に戻る", tweets_path, class: "btn-back" %>
     </div>
 
-    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-form" }) do |f| %>
-      <div class="form-group">
-        <%= f.label :email, "メールアドレス", class: "form-label" %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "example@email.com", class: "form-input" %>
+    <h2 class="new-title">🏛️ 新規図書館・作業空間の登録</h2>
+
+    <%= form_with(model: @tweet, local: true, class: "tweet-form") do |f| %>
+      
+      <div class="field">
+        <%= f.label :name, "施設名" %>
+        <%= f.text_field :name, placeholder: "例：海老名市立中央図書館", class: "form-input", required: true %>
       </div>
 
-      <div class="form-group">
-        <%= f.label :password, "パスワード", class: "form-label" %>
-        <%= f.password_field :password, autocomplete: "current-password", placeholder: "••••••••", class: "form-input" %>
+      <div class="field">
+        <%= f.label :place, "所在地" %>
+        <%= f.text_field :place, placeholder: "例：神奈川県海老名市めぐみ町7-1", class: "form-input" %>
       </div>
 
-      <% if devise_mapping.rememberable? %>
-        <div class="form-group checkbox-group">
-          <%= f.check_box :remember_me, class: "form-checkbox" %>
-          <%= f.label :remember_me, "ログイン状態を保持する", class: "checkbox-label" %>
+      <div class="field">
+        <%= f.label :time, "営業時間" %>
+        <%= f.text_field :time, placeholder: "例：9:00 〜 21:00", class: "form-input" %>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <%= f.label :net, "ネット環境" %>
+          <%= f.text_field :net, placeholder: "例：Wi-Fiあり", class: "form-input" %>
         </div>
-      <% end %>
-
-      <div class="form-actions">
-        <%= f.submit "ログインする", class: "btn-auth-primary" %>
+        <div class="field">
+          <%= f.label :outlet, "電源" %>
+          <%= f.text_field :outlet, placeholder: "例：カウンター席にあり", class: "form-input" %>
+        </div>
       </div>
+
+      <div class="field">
+        <%= f.label :image, "画像" %>
+        <%= f.file_field :image, class: "form-file" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :recommend, "おすすめ・作業ポイント" %>
+        <%= f.text_area :recommend, placeholder: "おすすめの理由や作業のしやすさなどを記入...", rows: 4, class: "form-textarea" %>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "登録する", class: "btn-submit" %>
+      </div>
+
     <% end %>
 
-    <div class="auth-footer">
-      <p class="auth-switch-text">アカウントをお持ちでない方</p>
-      <%= link_to "新規登録（アカウント作成）はこちら", new_registration_path(resource_name), class: "auth-link" %>
-      <div class="back-home-box">
-        <%= link_to "← 図書館リストに戻る", root_path, class: "back-home-link" %>
-      </div>
-    </div>
   </div>
 </div>
+
+<style>
+  .new-container {
+    background-color: #1a1412;
+    min-height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .new-card {
+    background-color: #fbf5e6;
+    width: 700px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 2px solid #b89b5e;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    padding: 40px;
+    color: #3b2f2f;
+    box-sizing: border-box;
+  }
+  .new-top-actions {
+    margin-bottom: 15px;
+  }
+  .btn-back {
+    color: #b89b5e;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  .new-title {
+    font-size: 1.5rem;
+    color: #2c221e;
+    text-align: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #d4c3a3;
+    padding-bottom: 10px;
+  }
+  .tweet-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #7a6552;
+  }
+  .form-input, .form-textarea, .form-file {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #d4c3a3;
+    background: #fff;
+    font-size: 0.95rem;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  .form-textarea {
+    resize: vertical;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  .actions {
+    text-align: center;
+    margin-top: 10px;
+  }
+  .btn-submit {
+    background-color: #b89b5e;
+    color: #2c221e;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-submit:hover {
+    background-color: #a3874e;
+  }
+</style>

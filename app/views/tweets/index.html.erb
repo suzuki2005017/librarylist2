@@ -1,136 +1,249 @@
-<%
-  # 1. @tweetsの並び順を保証し、データ配列を作成
-  raw_tweets = @tweets.to_a
-
-  # 2. シート（紙）ごとに [裏面(左), 表面(右)] のペアを組む
-  # 1枚目: [図書館1 (裏/左), 表紙 (表/右)]
-  sheets = [
-    {
-      back:  { type: 'tweet', data: raw_tweets[0] },
-      front: { type: 'cover' }
-    }
-  ]
-
-  # 2枚目以降: [図書館 (裏/左), 図書館 (表/右)]
-  idx = 1
-  while idx < raw_tweets.size
-    left_tweet  = raw_tweets[idx]
-    right_tweet = raw_tweets[idx + 1] # 奇数個の場合は nil
-
-    sheets << {
-      back:  left_tweet  ? { type: 'tweet', data: left_tweet }  : { type: 'empty' },
-      front: right_tweet ? { type: 'tweet', data: right_tweet } : { type: 'empty' }
-    }
-    idx += 2
-  end
-
-  # 最後のシート: [裏表紙 (裏/左), 空白 (表/右)]
-  sheets << {
-    back:  { type: 'backcover' },
-    front: { type: 'empty' }
-  }
-%>
-
-<style>
-  /* 各シートの重ね合わせ（Zインデックス）と動的回転制御 */
-  <% sheets.each_with_index do |sheet, i| %>
-    .sheet-<%= i %> {
-      z-index: <%= sheets.size - i %>;
-    }
-    #flip-<%= i %>:checked ~ .book-viewport .sheet-<%= i %> {
-      transform: rotateY(-180deg);
-      z-index: <%= 10 + i %> !important;
-    }
-  <% end %>
-</style>
-
 <div class="index-book-wrapper">
-  <form class="book-form">
-    <% sheets.each_with_index do |sheet, i| %>
-      <input type="checkbox" id="flip-<%= i %>" class="flip-checkbox">
-    <% end %>
 
-    <div class="book-viewport">
-      <div class="book-spine-center"></div>
-
-      <% sheets.each_with_index do |sheet, i| %>
-        <div class="sheet sheet-<%= i %>">
-          
-          <!-- ========== 表面（めくる前に右側に見えるページ） ========== -->
-          <div class="face front <%= 'cover-face' if sheet.dig(:front, :type) == 'cover' %>">
-            <div class="page-content">
-              <% if sheet.dig(:front, :type) == 'cover' %>
-                <!-- 表紙 -->
-                <div class="cover-design">
-                  <div class="header-crest">⚜️</div>
-                  <h1 class="index-title">LIBRARY ARCHIVE</h1>
-                  <p class="index-subtitle">蔵書目録・作業空間記録</p>
-                </div>
-              <% elsif sheet.dig(:front, :type) == 'tweet' %>
-                <!-- 右ページ：図書館 -->
-                <% tweet = sheet[:front][:data] %>
-                <div class="page-tweet-design">
-                  <div class="tweet-photo-frame">
-                    <% if tweet.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
-                      <img src="<%= tweet.photo %>" class="page-photo" alt="<%= tweet.name %>">
-                    <% elsif tweet.respond_to?(:image) && tweet.image.attached? %>
-                      <%= image_tag tweet.image, class: "page-photo" %>
-                    <% else %>
-                      <div class="page-photo-placeholder"><span class="icon">🏛️</span></div>
-                    <% end %>
-                  </div>
-                  <h2 class="page-library-name"><%= tweet.name %></h2>
-                  <%= link_to "詳細を開く", tweet_path(tweet), class: "btn-detail" %>
-                </div>
-              <% else %>
-                <div class="page-empty-design"><div class="ornament">❦</div></div>
-              <% end %>
-            </div>
-
-            <!-- 次へ（右ページをめくる）ボタン -->
-            <label for="flip-<%= i %>" class="nav-btn nav-next" title="ページをめくる">▶</label>
-          </div>
-
-          <!-- ========== 裏面（めくった後に左側に見えるページ） ========== -->
-          <div class="face back <%= 'backcover-face' if sheet.dig(:back, :type) == 'backcover' %>">
-            <div class="page-content">
-              <% if sheet.dig(:back, :type) == 'backcover' %>
-                <!-- 裏表紙 -->
-                <div class="backcover-design">
-                  <div class="header-crest">⚜️</div>
-                  <h2 class="backcover-title">THE END</h2>
-                  <p class="backcover-desc">全ての蔵書録の終わり</p>
-                  <%= link_to "＋ 新規図書館を登録する", new_tweet_path, class: "btn-new-tweet-book" %>
-                  <button type="reset" class="btn-reset">表紙に戻る ↺</button>
-                </div>
-              <% elsif sheet.dig(:back, :type) == 'tweet' %>
-                <!-- 左ページ：図書館 -->
-                <% tweet = sheet[:back][:data] %>
-                <% next if tweet.nil? %>
-                <div class="page-tweet-design">
-                  <div class="tweet-photo-frame">
-                    <% if tweet&.photo.present? && tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
-                      <img src="<%= tweet.photo %>" class="page-photo" alt="<%= tweet.name %>">
-                    <% elsif tweet.respond_to?(:image) && tweet.image.attached? %>
-                      <%= image_tag tweet.image, class: "page-photo" %>
-                    <% else %>
-                      <div class="page-photo-placeholder"><span class="icon">🏛️</span></div>
-                    <% end %>
-                  </div>
-                  <h2 class="page-library-name"><%= tweet.name %></h2>
-                  <%= link_to "詳細を開く", tweet_path(tweet), class: "btn-detail" %>
-                </div>
-              <% else %>
-                <div class="page-empty-design"><div class="ornament">❦</div></div>
-              <% end %>
-            </div>
-
-            <!-- 前へ（左ページを戻す）ボタン -->
-            <label for="flip-<%= i %>" class="nav-btn nav-prev" title="ページを戻す">◀</label>
-          </div>
-
-        </div>
+  <header class="book-header-nav">
+    <div class="header-logo">📖 蔵書目録 / Library List</div>
+    <div class="header-auth">
+      <% if user_signed_in? %>
+        <span class="user-email">👤 <%= current_user.email %></span>
+        <%= link_to "➕ 新規登録", new_tweet_path, class: "btn-header btn-new" %>
+        <%= link_to "ログアウト", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn-header btn-logout" %>
+      <% else %>
+        <%= link_to "➕ 新規登録", new_tweet_path, class: "btn-header btn-new" %>
+        <%= link_to "ログイン", new_user_session_path, class: "btn-header btn-login" %>
+        <%= link_to "新規ユーザー登録", new_user_registration_path, class: "btn-header btn-register" %>
       <% end %>
     </div>
-  </form>
+  </header>
+
+  <div class="page-indicator-bar hide-on-mobile">
+    <span id="page-indicator">表紙</span>
+  </div>
+
+  <div class="book-container-outer">
+    <button id="prev-btn" class="side-nav-btn hide-on-mobile">◀ 戻る</button>
+
+    <div class="book-viewport">
+      <div class="book-spine hide-on-mobile"></div>
+      <div id="book" class="book-body">
+
+        <% 
+          # @tweets は order(created_at: :desc) なので、
+          # @tweets[0] = 1番新しい投稿
+          # @tweets[1] = 2番目に新しい投稿
+          # @tweets[2] = 3番目に新しい投稿（これが左側に来てほしい）
+          
+          # 各見開き（シート）ごとに [左ページの投稿, 右ページの投稿] を綺麗に割り当てます
+          # シート1: [表紙の裏] = @tweets[0] (1番新しい投稿がめくった直後の左側)
+          # シート2以降: 2つずつペアにして見開きを作成
+          remaining_tweets = @tweets.drop(1) # 0番目を除外
+          pairs = remaining_tweets.each_slice(2).to_a
+          total_sheets = pairs.length + 1
+        %>
+
+        <!-- 【シート1】表紙 ＆ めくった1ページ目（@tweets[0] が左ページに配置されます） -->
+        <div class="sheet" style="z-index: <%= total_sheets + 2 %>;">
+          <div class="face front cover-front">
+            <div class="cover-border">
+              <span class="gold-icon">🏛️</span>
+              <h1 class="book-main-title">蔵書・作業空間<br>目録</h1>
+              <p class="book-sub-title">LIBRARY & WORKSPACE COLLECTION</p>
+              <p class="click-hint">クリックまたはボタンで開く</p>
+            </div>
+          </div>
+          <div class="face back inner-page">
+            <% if @tweets[0] %>
+              <% t = @tweets[0] %>
+              <div class="spot-photo-frame-simple">
+                <% if t.respond_to?(:image) && t.image.attached? %>
+                  <%= image_tag t.image, class: "spot-photo" %>
+                <% elsif t.respond_to?(:photo) && t.photo.present? %>
+                  <img src="<%= t.photo %>" class="spot-photo" alt="<%= t.name %>">
+                <% else %>
+                  <div class="photo-placeholder">🏛️</div>
+                <% end %>
+              </div>
+              <h3 class="spot-name-simple"><%= t.name %></h3>
+              <div class="action-link-container-simple">
+                <%= link_to "📖 詳細を見る", tweet_path(t), class: "btn-detail-link" %>
+              </div>
+              <div class="page-number">- 1 -</div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- 【シート2以降】中ページ見開き
+             pairs の各要素 `pair` は [左側の投稿, 右側の投稿] になります。
+             これにより、@tweets[2]（3番目の投稿）は pairs[0] の左側、または次のシートの左側に確実に配置されます。 -->
+        <% pairs.each_with_index do |pair, idx| %>
+          <% t_left = pair[0]; t_right = pair[1] %>
+          <div class="sheet" style="z-index: <%= total_sheets - idx + 1 %>;">
+            
+            <!-- 左ページ（ここに新しい奇数番目の投稿、すなわち3番目の投稿などが来ます） -->
+            <div class="face front inner-page">
+              <% if t_left %>
+                <div class="spot-photo-frame-simple">
+                  <% if t_left.respond_to?(:image) && t_left.image.attached? %>
+                    <%= image_tag t_left.image, class: "spot-photo" %>
+                  <% elsif t_left.respond_to?(:photo) && t_left.photo.present? %>
+                    <img src="<%= t_left.photo %>" class="spot-photo" alt="<%= t_left.name %>">
+                  <% else %>
+                    <div class="photo-placeholder">🏛️</div>
+                  <% end %>
+                </div>
+                <h3 class="spot-name-simple"><%= t_left.name %></h3>
+                <div class="action-link-container-simple">
+                  <%= link_to "📖 詳細を見る", tweet_path(t_left), class: "btn-detail-link" %>
+                </div>
+                <div class="page-number">- <%= (idx + 1) * 2 - 0 %> -</div>
+              <% end %>
+            </div>
+
+            <!-- 右ページ（偶数番目の投稿） -->
+            <div class="face back inner-page">
+              <% if t_right %>
+                <div class="spot-photo-frame-simple">
+                  <% if t_right.respond_to?(:image) && t_right.image.attached? %>
+                    <%= image_tag t_right.image, class: "spot-photo" %>
+                  <% elsif t_right.respond_to?(:photo) && t_right.photo.present? %>
+                    <img src="<%= t_right.photo %>" class="spot-photo" alt="<%= t_right.name %>">
+                  <% else %>
+                    <div class="photo-placeholder">🏛️</div>
+                  <% end %>
+                </div>
+                <h3 class="spot-name-simple"><%= t_right.name %></h3>
+                <div class="action-link-container-simple">
+                  <%= link_to "📖 詳細を見る", tweet_path(t_right), class: "btn-detail-link" %>
+                </div>
+                <div class="page-number">- <%= (idx + 1) * 2 + 1 %> -</div>
+              <% end %>
+            </div>
+
+          </div>
+        <% end %>
+
+        <!-- 【最終シート：裏表紙】 -->
+        <div class="sheet" style="z-index: 1;">
+          <div class="face front inner-page" style="background-color: #f6efe0;">
+            <div style="text-align: center; color: #a39281; font-style: italic;">これより前のページはありません</div>
+          </div>
+          <div class="face back cover-back">
+            <div class="cover-border">
+              <span class="gold-icon">⚜️</span>
+              <h2 class="book-main-title">LIBRARY LIST</h2>
+              <p class="book-sub-title">END OF COLLECTION</p>
+              <button type="button" id="back-to-cover-btn" class="btn-back-to-cover">🔄 表紙に戻る</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <button id="next-btn" class="side-nav-btn hide-on-mobile">進む ▶</button>
+  </div>
 </div>
+
+<style>
+  .index-book-wrapper { background-color: #1a1412; min-height: 100vh; padding-bottom: 40px; }
+  .book-header-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #241c18; border-bottom: 2px solid #b89b5e; color: #f4ebd0; }
+  .header-auth { display: flex; align-items: center; gap: 15px; }
+  .btn-header { padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; text-decoration: none; font-weight: bold; }
+  .btn-new { background-color: #b89b5e; color: #2c221e; }
+  .btn-logout, .btn-login { border: 1px solid #b89b5e; color: #f4ebd0; }
+  .btn-register { background-color: #f4ebd0; color: #2c221e; }
+  .user-email { font-size: 0.9rem; color: #d1c29e; }
+  .page-indicator-bar { text-align: center; color: #b89b5e; padding: 10px; font-size: 0.9rem; font-weight: bold; }
+  .book-container-outer { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 10px; }
+  .side-nav-btn { background: #241c18; color: #b89b5e; border: 1px solid #b89b5e; padding: 12px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+  .side-nav-btn:hover { background: #b89b5e; color: #2c221e; }
+  .book-viewport { position: relative; width: 900px; max-width: 95vw; height: 560px; background: #1f1613; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); perspective: 2000px; overflow: hidden; }
+  .book-spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 30px; transform: translateX(-50%); background: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.1), rgba(0,0,0,0.6)); z-index: 100; pointer-events: none; }
+  .book-body { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+  .sheet { position: absolute; width: 50%; height: 100%; top: 0; right: 0; transform-origin: left center; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); cursor: pointer; }
+  .sheet.flipped { transform: rotateY(-180deg); }
+  .face { position: absolute; width: 100%; height: 100%; top: 0; left: 0; box-sizing: border-box; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .face.front { background-color: #fbf5e6; z-index: 2; }
+  .face.back { transform: rotateY(180deg); background-color: #f6efe0; z-index: 1; }
+  .cover-front, .cover-back { background: linear-gradient(135deg, #2c221e 0%, #1a1412 100%); color: #f4ebd0; display: flex; align-items: center; justify-content: center; border: 2px solid #b89b5e; }
+  .cover-border { border: 1px dashed #b89b5e; padding: 30px; text-align: center; width: 80%; border-radius: 4px; }
+  .gold-icon { font-size: 2.2rem; color: #b89b5e; }
+  .book-main-title { font-size: 1.6rem; margin: 10px 0 5px 0; letter-spacing: 2px; color: #f4ebd0; }
+  .book-sub-title { font-size: 0.75rem; color: #b89b5e; letter-spacing: 1px; }
+  .click-hint { margin-top: 20px; font-size: 0.75rem; color: #a39281; }
+  .btn-back-to-cover { margin-top: 15px; background-color: #b89b5e; color: #2c221e; border: none; padding: 6px 14px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+  .inner-page { padding: 40px; color: #3b2f2f; border: 1px solid #d4c3a3; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .spot-photo-frame-simple { width: 85%; height: 220px; background: #eae2cc; border: 2px dashed #b89b5e; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+  .spot-photo { width: 100%; height: 100%; object-fit: cover; }
+  .photo-placeholder { font-size: 3rem; color: #b89b5e; }
+  .spot-name-simple { font-size: 1.2rem; font-weight: bold; color: #2c221e; margin-bottom: 12px; text-align: center; }
+  .action-link-container-simple { margin-top: 5px; }
+  .btn-detail-link { display: inline-block; background-color: #b89b5e; color: #2c221e; padding: 8px 20px; border-radius: 4px; font-size: 0.9rem; text-decoration: none; font-weight: bold; }
+  .page-number { position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 0.75rem; color: #a39281; }
+
+  @media screen and (max-width: 768px) {
+    .hide-on-mobile { display: none !important; }
+    .book-container-outer { flex-direction: column; padding: 10px; }
+    .book-viewport { width: 100%; height: auto; overflow: visible; perspective: none; background: transparent; box-shadow: none; }
+    .book-body { display: flex; flex-direction: column; gap: 20px; transform-style: flat; }
+    .sheet { position: relative; width: 100%; height: auto; right: auto; transform: none !important; margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+    .face { position: relative; transform: none !important; backface-visibility: visible; width: 100%; height: auto; min-height: 350px; display: flex; }
+    .face.back { display: none; }
+    .cover-front { min-height: 250px; border-radius: 8px; margin-bottom: 15px; }
+    .inner-page { border-radius: 8px; border: 2px solid #b89b5e; background-color: #fbf5e6; margin-bottom: 10px; }
+  }
+</style>
+
+<script>
+  function initLibraryBook() {
+    const sheets = document.querySelectorAll(".sheet");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const pageIndicator = document.getElementById("page-indicator");
+    const backToCoverBtn = document.getElementById("back-to-cover-btn");
+    if (!sheets.length) return;
+
+    let currentIdx = 0;
+    const maxIdx = sheets.length;
+
+    function updateZIndex() {
+      sheets.forEach((sheet, i) => {
+        sheet.style.zIndex = (i < currentIdx) ? (i + 1) : (maxIdx - i);
+      });
+    }
+
+    function updateBookState() {
+      if (window.innerWidth <= 768) return;
+      sheets.forEach((sheet, i) => {
+        if (i < currentIdx) {
+          sheet.classList.add("flipped");
+        } else {
+          sheet.classList.remove("flipped");
+        }
+      });
+      updateZIndex();
+      if (currentIdx === 0) {
+        pageIndicator.textContent = "表紙";
+      } else if (currentIdx === maxIdx) {
+        pageIndicator.textContent = "裏表紙（読了）";
+      } else {
+        pageIndicator.textContent = `見開きページ (${currentIdx} / ${maxIdx})`;
+      }
+    }
+
+    if (nextBtn) nextBtn.onclick = () => { if (currentIdx < maxIdx) { currentIdx++; updateBookState(); } };
+    if (prevBtn) prevBtn.onclick = () => { if (currentIdx > 0) { currentIdx--; updateBookState(); } };
+    if (backToCoverBtn) backToCoverBtn.onclick = (e) => { e.stopPropagation(); currentIdx = 0; updateBookState(); };
+
+    sheets.forEach((sheet, i) => {
+      sheet.onclick = (e) => {
+        if (window.innerWidth <= 768) return;
+        if (e.target.closest("a") || e.target.closest("button")) return;
+        if (i === currentIdx && currentIdx < maxIdx) { currentIdx++; updateBookState(); }
+        else if (i === currentIdx - 1 && currentIdx > 0) { currentIdx--; updateBookState(); }
+      };
+    });
+    updateBookState();
+  }
+  document.addEventListener("DOMContentLoaded", initLibraryBook);
+  document.addEventListener("turbo:load", initLibraryBook);
+</script>

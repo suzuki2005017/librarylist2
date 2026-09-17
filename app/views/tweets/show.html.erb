@@ -1,126 +1,142 @@
-<div class="show-wrapper">
-  <!-- 戻るボタン -->
-  <div class="show-nav-top">
-    <%= link_to "← 蔵書目録を閉じる", tweets_path, class: "btn-back-to-list" %>
-  </div>
+<div class="show-container">
+  <div class="show-book-wrapper">
 
-  <!-- 1. 見開きの重厚な本本体 -->
-  <div class="show-book-container">
-    <div class="show-book-spine"></div>
-
-    <!-- 左ページ：基本情報＆写真 -->
-    <div class="page page-left">
-      <div class="page-ornament-top">⚜️</div>
-      <div class="page-header">
-        <span class="book-tag">RECORD NO.<%= @tweet.id %></span>
-      </div>
-
-      <h1 class="show-title"><%= @tweet.name %></h1>
-
-      <!-- 写真エリア -->
-      <% if @tweet.photo.present? && @tweet.photo.match?(/\.(jpeg|jpg|gif|png|svg|webp)($|\?)/i) %>
-        <div class="show-photo-frame">
-          <img src="<%= @tweet.photo %>" alt="<%= @tweet.name %>" class="show-photo">
-        </div>
-      <% elsif @tweet.respond_to?(:image) && @tweet.image.attached? %>
-        <div class="show-photo-frame">
-          <%= image_tag @tweet.image, class: "show-photo" %>
-        </div>
-      <% elsif @tweet.photo.present? %>
-        <div class="show-photo-frame photo-link-box">
-          <p class="photo-link-title">📍 位置情報 / 外部リンク</p>
-          <%= link_to "Google Maps等で開く ↗", @tweet.photo, target: "_blank", rel: "noopener", class: "photo-link" %>
-        </div>
-      <% else %>
-        <div class="show-photo-frame photo-placeholder-box">
-          <span class="placeholder-icon">🏛️</span>
+    <!-- トップナビ（編集・削除ボタンの表示判定を安全に修正） -->
+    <div class="show-top-actions">
+      <%= link_to "◀ 一覧に戻る", tweets_path, class: "btn-back" %>
+      
+      <% if user_signed_in? && @tweet.user_id.to_s == current_user.id.to_s %>
+        <div class="owner-actions">
+          <%= link_to "編集", edit_tweet_path(@tweet), class: "btn-edit" %>
+          <%= link_to "削除", tweet_path(@tweet), data: { turbo_method: :delete, turbo_confirm: "本当に削除しますか？" }, class: "btn-delete" %>
         </div>
       <% end %>
-
-      <div class="show-meta-container">
-        <div class="show-meta-item">
-          <span class="meta-label">📍 所在地</span>
-          <p class="meta-value"><%= @tweet.place %></p>
-        </div>
-
-        <div class="show-meta-item">
-          <span class="meta-label">🚶 交通案内</span>
-          <p class="meta-value"><%= @tweet.access %></p>
-        </div>
-      </div>
     </div>
 
-    <!-- 右ページ：設備・環境情報 -->
-    <div class="page page-right">
-      <div class="page-ornament-top">📜</div>
-      <h2 class="show-subtitle">施設・設備詳細</h2>
-      
-      <div class="show-meta-container">
-        <div class="show-meta-item">
-          <span class="meta-label">🕒 開館時間</span>
-          <p class="meta-value"><%= @tweet.time %></p>
-        </div>
+    <!-- 左右見開き本の詳細画面 -->
+    <div class="show-spread-book">
+      <div class="spine-center hide-on-mobile"></div>
 
-        <div class="show-meta-item">
-          <span class="meta-label">📶 通信環境 (Wi-Fi)</span>
-          <p class="meta-value"><%= @tweet.net %></p>
-        </div>
-
-        <div class="show-meta-item">
-          <span class="meta-label">🔌 電源設備</span>
-          <p class="meta-value"><%= @tweet.outlet %></p>
-        </div>
-      </div>
-
-      <!-- 操作ボタン -->
-      <div class="show-actions">
-        <%= link_to "編集する", edit_tweet_path(@tweet), class: "btn-action btn-edit" %>
-        <%= button_to "削除する", tweet_path(@tweet), method: :delete, form: { data: { turbo_confirm: "本当に削除しますか？" } }, data: { confirm: "本当に削除しますか？" }, class: "btn-action btn-delete" %>
-      </div>
-      <div class="page-ornament-bottom">❦</div>
-    </div>
-  </div>
-
-  <!-- 2. 本の下に独立して配置する枠 -->
-  <div class="standalone-section">
-    <!-- おすすめポイント -->
-    <div class="theme-card">
-      <div class="theme-card-header">
-        <span class="card-header-icon">💡</span>
-        <h3 class="theme-card-title">特記事項・おすすめ</h3>
-      </div>
-      <div class="theme-card-content">
-        <% if @tweet.recommend.present? %>
-          <%= simple_format(@tweet.recommend) %>
-        <% else %>
-          <p class="empty-placeholder">記載はありません。</p>
-        <% end %>
-      </div>
-    </div>
-
-    <!-- コメントエリア -->
-    <div class="theme-card">
-      <div class="theme-card-header">
-        <span class="card-header-icon">💬</span>
-        <h3 class="theme-card-title">閲覧者記録 (コメント)</h3>
-      </div>
-      <div class="theme-card-content">
-        <% if @tweet.respond_to?(:comments) && @tweet.comments.present? %>
-          <% @tweet.comments.each do |comment| %>
-            <div class="theme-comment-item">
-              <div class="theme-comment-meta">
-                <span class="theme-comment-user">
-                  👤 <%= comment.user.nickname if comment.respond_to?(:user) && comment.user && comment.user.respond_to?(:nickname) %>
-                </span>
-                <span class="theme-comment-date"><%= comment.created_at.strftime("%Y/%m/%d %H:%M") %></span>
-              </div>
-              <p class="theme-comment-text"><%= comment.text if comment.respond_to?(:text) %></p>
-            </div>
+      <!-- 左ページ -->
+      <div class="book-page left-page">
+        <h2 class="show-title"><%= @tweet.name %></h2>
+        
+        <div class="show-photo-container">
+          <% if @tweet.respond_to?(:image) && @tweet.image.attached? %>
+            <%= image_tag @tweet.image, class: "show-main-image" %>
+          <% elsif @tweet.respond_to?(:photo) && @tweet.photo.present? %>
+            <img src="<%= @tweet.photo %>" class="show-main-image" alt="<%= @tweet.name %>">
+          <% else %>
+            <div class="show-photo-placeholder">🏛️</div>
           <% end %>
-        <% else %>
-          <p class="empty-placeholder">まだコメントはありません。</p>
-        <% end %>
+        </div>
+
+        <div class="show-info-grid">
+          <div class="info-item"><strong>📍 所在地:</strong> <%= @tweet.place.presence || "未設定" %></div>
+          <div class="info-item"><strong>🕒 営業時間:</strong> <%= @tweet.time.presence || "未記入" %></div>
+          <div class="info-item"><strong>📶 ネット:</strong> <%= @tweet.net.presence || "未確認" %></div>
+          <div class="info-item"><strong>🔌 電源:</strong> <%= @tweet.outlet.presence || "未確認" %></div>
+        </div>
+      </div>
+
+      <!-- 右ページ -->
+      <div class="book-page right-page">
+        <div class="like-section">
+          <% if user_signed_in? && @tweet.respond_to?(:likes) %>
+            <% like = @tweet.likes.find_by(user_id: current_user.id) %>
+            <% if like %>
+              <%= button_to "❤️ いいね解除 (#{ @tweet.likes.count })", tweet_like_path(@tweet, like), method: :delete, class: "btn-like active" %>
+            <% else %>
+              <%= button_to "🤍 いいね (#{ @tweet.likes.count })", tweet_likes_path(@tweet), method: :post, class: "btn-like" %>
+            <% end %>
+          <% else %>
+            <p class="like-count-display">❤️ いいね数: <%= @tweet.respond_to?(:likes) ? @tweet.likes.count : 0 %></p>
+          <% end %>
+        </div>
+
+        <div class="comments-section">
+          <h3 class="comments-heading">💬 コメント一覧</h3>
+          <div class="comments-scroll-area">
+            <% if @comments.present? %>
+              <% @comments.each do |comment| %>
+                <div class="comment-item">
+                  <span class="comment-user"><%= comment.user&.email || "ゲスト" %>：</span>
+                  <span class="comment-body"><%= comment.content %></span>
+                </div>
+              <% end %>
+            <% else %>
+              <p class="no-comments">まだコメントはありません。</p>
+            <% end %>
+          </div>
+
+          <% if user_signed_in? %>
+            <%= form_with(model: [@tweet, Comment.new], local: true, class: "comment-form") do |f| %>
+              <%= f.text_area :content, placeholder: "コメントを入力...", rows: 2, class: "comment-input" %>
+              <%= f.submit "送信", class: "btn-comment-submit" %>
+            <% end %>
+          <% else %>
+            <p class="login-prompt">※ コメントには<%= link_to "ログイン", new_user_session_path %>が必要です。</p>
+          <% end %>
+        </div>
       </div>
     </div>
+
+    <!-- おすすめポイント -->
+    <div class="recommend-box">
+      <h3 class="recommend-title">💡 おすすめ・作業ポイント</h3>
+      <div class="recommend-text">
+        <%= simple_format(@tweet.recommend.presence || "おすすめポイントはまだ記載されていません。") %>
+      </div>
+    </div>
+
   </div>
 </div>
+
+<style>
+  .show-container { background-color: #1a1412; min-height: 100vh; padding: 30px 20px; display: flex; justify-content: center; }
+  .show-book-wrapper { width: 900px; max-width: 100%; display: flex; flex-direction: column; gap: 15px; }
+  .show-top-actions { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+  .btn-back { color: #b89b5e; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
+  .owner-actions { display: flex; gap: 10px; }
+  .btn-edit, .btn-delete { padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; text-decoration: none; font-weight: bold; }
+  .btn-edit { background-color: #b89b5e; color: #2c221e; }
+  .btn-delete { background-color: #a84343; color: #fff; }
+
+  .show-spread-book { position: relative; display: flex; background-color: #fbf5e6; border-radius: 8px; border: 2px solid #b89b5e; box-shadow: 0 20px 40px rgba(0,0,0,0.8); overflow: hidden; min-height: 520px; }
+  .spine-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 20px; transform: translateX(-50%); background: linear-gradient(to right, rgba(0,0,0,0.15), rgba(0,0,0,0.02), rgba(0,0,0,0.15)); z-index: 10; pointer-events: none; }
+  .book-page { flex: 1; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; }
+  .left-page { border-right: 1px solid #d4c3a3; background-color: #fbf5e6; }
+  .right-page { background-color: #f6efe0; }
+
+  .show-title { font-size: 1.35rem; color: #2c221e; text-align: center; margin-bottom: 15px; border-bottom: 2px solid #d4c3a3; padding-bottom: 8px; }
+  .show-photo-container { width: 100%; height: 220px; background: #eae2cc; border: 2px dashed #b89b5e; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+  .show-main-image { width: 100%; height: 100%; object-fit: cover; }
+  .show-photo-placeholder { font-size: 3rem; color: #b89b5e; }
+
+  .show-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: #f4ebd0; padding: 12px; border-radius: 6px; border: 1px solid #d4c3a3; font-size: 0.85rem; color: #3b2f2f; }
+  .like-section { text-align: center; margin-bottom: 15px; }
+  .btn-like { background-color: #fff; border: 1px solid #b89b5e; color: #b89b5e; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+  .btn-like.active, .btn-like:hover { background-color: #b89b5e; color: #fff; }
+  .like-count-display { font-weight: bold; color: #b89b5e; font-size: 0.9rem; }
+
+  .comments-section { display: flex; flex-direction: column; flex-grow: 1; }
+  .comments-heading { font-size: 0.95rem; color: #2c221e; margin-bottom: 8px; border-bottom: 1px solid #d4c3a3; padding-bottom: 4px; }
+  .comments-scroll-area { max-height: 140px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .comment-item { background: #f4ebd0; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; border: 1px solid #e2d2b3; }
+  .comment-user { font-weight: bold; color: #7a6552; }
+  .no-comments { color: #8c7355; font-size: 0.85rem; font-style: italic; text-align: center; padding: 10px 0; }
+  .comment-form { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+  .comment-input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d4c3a3; background: #fff; box-sizing: border-box; font-family: inherit; font-size: 0.85rem; resize: none; }
+  .btn-comment-submit { align-self: flex-end; background-color: #b89b5e; color: #2c221e; border: none; padding: 5px 14px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+  .login-prompt { font-size: 0.82rem; color: #7a6552; text-align: center; margin-top: auto; }
+
+  .recommend-box { width: 100%; background: #fbf5e6; border: 2px solid #b89b5e; border-radius: 8px; padding: 20px; box-sizing: border-box; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+  .recommend-title { font-size: 1rem; color: #7a6552; border-bottom: 1px solid #d4c3a3; padding-bottom: 6px; margin-bottom: 10px; }
+  .recommend-text { line-height: 1.6; font-size: 0.9rem; color: #3b2f2f; }
+
+  @media screen and (max-width: 768px) {
+    .hide-on-mobile { display: none !important; }
+    .show-spread-book { flex-direction: column; min-height: auto; }
+    .left-page { border-right: none; border-bottom: 1px solid #d4c3a3; }
+  }
+</style>

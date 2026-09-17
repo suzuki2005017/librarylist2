@@ -1,58 +1,64 @@
-<div class="book-container">
-  <% @sheets.each_with_index do |sheet, index| %>
-    <div class="sheet" id="sheet-<%= index %>">
+<div class="form-wrapper" style="max-width: 600px; margin: 50px auto; padding: 30px; background-color: #1a1410; border: 1px solid #b89b5e; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); color: #e8ded1;">
+  
+  <div class="form-header" style="text-align: center; margin-bottom: 30px; border-bottom: 1px dashed #b89b5e; padding-bottom: 20px;">
+    <span style="font-size: 2rem;">✏️</span>
+    <h1 style="color: #d4af37; font-size: 1.8rem; margin: 10px 0 5px;">蔵書・作業空間の記録を編集</h1>
+    <p style="color: #a39281; font-size: 0.85rem;">変更したい項目を入力して更新してください</p>
+  </div>
 
-      <!-- ========== 表面 (右側のページ) ========== -->
-      <div class="face front <%= 'cover-face' if sheet.dig(:front, :type) == 'cover' %>">
-        <div class="page-content">
-          <% if sheet.dig(:front, :type) == 'cover' %>
-            <!-- 表紙デザイン -->
-            <div class="cover-design">
-              <h1><%= sheet.dig(:front, :title) %></h1>
-              <p><%= sheet.dig(:front, :subtitle) %></p>
-            </div>
-
-          <% elsif sheet.dig(:front, :tweet).present? %>
-            <!-- 通常ページ (ツイート表示) -->
-            <% tweet = sheet[:front][:tweet] %>
-            <div class="tweet-card">
-              <span class="page-number"><%= index * 2 + 1 %></span>
-              <p class="tweet-text"><%= tweet.content %></p>
-              <small><%= tweet.created_at.strftime('%Y/%m/%d') %></small>
-            </div>
-
-          <% else %>
-            <!-- 白紙ページ -->
-            <div class="blank-page"></div>
-          <% end %>
-        </div>
-      </div>
-
-      <!-- ========== 裏面 (左側のページ) ========== -->
-      <div class="face back <%= 'back-cover-face' if sheet.dig(:back, :type) == 'back_cover' %>">
-        <div class="page-content">
-          <% if sheet.dig(:back, :type) == 'back_cover' %>
-            <!-- 裏表紙デザイン -->
-            <div class="back-cover-design">
-              <p><%= sheet.dig(:back, :text) || 'Fin' %></p>
-            </div>
-
-          <% elsif sheet.dig(:back, :tweet).present? %>
-            <!-- 通常ページ (ツイート表示) -->
-            <% tweet = sheet[:back][:tweet] %>
-            <div class="tweet-card">
-              <span class="page-number"><%= index * 2 + 2 %></span>
-              <p class="tweet-text"><%= tweet.content %></p>
-              <small><%= tweet.created_at.strftime('%Y/%m/%d') %></small>
-            </div>
-
-          <% else %>
-            <!-- 白紙ページ -->
-            <div class="blank-page"></div>
-          <% end %>
-        </div>
-      </div>
-
+  <%= form_with(model: @tweet, local: true, html: { class: "custom-form" }) do |f| %>
+    
+    <div style="margin-bottom: 20px;">
+      <%= f.label :name, "図書館・スポット名", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+      <%= f.text_field :name, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
     </div>
+
+    <!-- ★ 復元：画像ファイルアップロード欄 -->
+    <div style="margin-bottom: 20px;">
+      <%= f.label :image, "新しい画像ファイルを選択（差し替える場合）", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+      <%= f.file_field :image, accept: "image/*", style: "width: 100%; padding: 8px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <%= f.label :photo, "画像URL", style: "display: block; color: #a39281; font-size: 0.8rem; margin-bottom: 6px;" %>
+      <%= f.text_field :photo, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <%= f.label :place, "所在地（住所・場所）", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+      <%= f.text_field :place, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <%= f.label :time, "営業時間", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+      <%= f.text_field :time, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+      <div style="flex: 1;">
+        <%= f.label :net, "Wi-Fi環境", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+        <%= f.text_field :net, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+      </div>
+      <div style="flex: 1;">
+        <%= f.label :outlet, "コンセント・電源", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+        <%= f.text_field :outlet, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <%= f.label :access, "アクセス", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+      <%= f.text_field :access, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box;" %>
+    </div>
+
+    <div style="margin-bottom: 25px;">
+      <%= f.label :recommend, "手記・おすすめポイント・感想", style: "display: block; color: #d4af37; font-size: 0.9rem; margin-bottom: 6px;" %>
+      <%= f.text_area :recommend, rows: 5, style: "width: 100%; padding: 10px; background: #0f0c0a; border: 1px solid #b89b5e; color: #e8ded1; border-radius: 4px; box-sizing: border-box; resize: vertical;" %>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+      <%= link_to "← 詳細画面に戻る", tweet_path(@tweet), style: "color: #a39281; text-decoration: none; font-size: 0.9rem;" %>
+      <%= f.submit "変更を更新する", style: "padding: 10px 24px; background: linear-gradient(135deg, #d4af37 0%, #b89b5e 100%); color: #120d09; border: none; font-weight: bold; border-radius: 4px; cursor: pointer;" %>
+    </div>
+
   <% end %>
 </div>

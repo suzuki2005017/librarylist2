@@ -1,56 +1,61 @@
 class TweetsController < ApplicationController
+  before_action :authenticate_user!, except: [:index, :show]
   before_action :set_tweet, only: [:show, :edit, :update, :destroy]
 
   def index
-    # 一覧画面用のツイート全件取得
-    @tweets = Tweet.all.order(created_at: :desc)
+    # 常に新しい投稿が先頭（配列の0番目）に来るようにする
+    @tweets = Tweet.order(created_at: :desc)
   end
 
   def show
-    # @tweet が存在しない場合は一覧画面にリダイレクト
-    if @tweet.nil?
-      redirect_to tweets_path, alert: '指定されたレコードが見つかりませんでした。'
-    end
+    @comments = @tweet.comments.includes(:user)
   end
 
   def new
-    @tweet = Tweet.new
+    @tweet = current_user.tweets.build
   end
 
   def create
-    @tweet = Tweet.new(tweet_params)
+    @tweet = current_user.tweets.build(tweet_params)
     if @tweet.save
-      redirect_to tweets_path, notice: '新しい蔵書録を登録しました。'
+      redirect_to tweets_path, notice: '投稿しました'
     else
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
+    redirect_to tweets_path, alert: '権限がありません' unless owner?
   end
 
   def update
-    if @tweet.update(tweet_params)
-      redirect_to tweet_path(@tweet), notice: '蔵書録を更新しました。'
+    if owner? && @tweet.update(tweet_params)
+      redirect_to tweet_path(@tweet), notice: '更新しました'
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @tweet.destroy
-    redirect_to tweets_path, notice: '蔵書録を削除しました。'
+    if owner?
+      @tweet.destroy
+      redirect_to tweets_path, notice: '削除しました'
+    else
+      redirect_to tweets_path, alert: '権限がありません'
+    end
   end
 
   private
 
   def set_tweet
-    # find_by(id: ...) を使うことで、IDが存在しない場合でも例外を出さずに nil をセットします
-    @tweet = Tweet.find_by(id: params[:id])
+    @tweet = Tweet.find(params:[:id]) rescue Tweet.find(params[:id])
   end
 
   def tweet_params
-    # アプリで使用しているカラム名に合わせて必要に応じて調整してください
-    params.require(:tweet).permit(:name, :photo, :image, :text)
+    params.require(:tweet).permit(:name, :place, :time, :net, :outlet, :recommend, :image, :photo)
+  end
+
+  def owner?
+    user_signed_in? && @tweet.user_id == current_user.id
   end
 end
