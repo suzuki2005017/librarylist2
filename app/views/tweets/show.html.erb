@@ -122,11 +122,15 @@
   .comments-section { display: flex; flex-direction: column; flex-grow: 1; }
   .comments-heading { font-size: 0.95rem; color: #2c221e; margin-bottom: 8px; border-bottom: 1px solid #d4c3a3; padding-bottom: 4px; }
   .comments-scroll-area { max-height: 140px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
-  .comment-item { background: #f4ebd0; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; border: 1px solid #e2d2b3; }
-  .comment-user { font-weight: bold; color: #7a6552; }
+  
+  /* コメント内容を黒字にするスタイル */
+  .comment-item { background: #f4ebd0; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; border: 1px solid #e2d2b3; color: #000000; }
+  .comment-user { font-weight: bold; color: #5a3d28; }
+  .comment-body { color: #000000; }
+  
   .no-comments { color: #8c7355; font-size: 0.85rem; font-style: italic; text-align: center; padding: 10px 0; }
   .comment-form { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
-  .comment-input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d4c3a3; background: #fff; box-sizing: border-box; font-family: inherit; font-size: 0.85rem; resize: none; }
+  .comment-input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #d4c3a3; background: #fff; box-sizing: border-box; font-family: inherit; font-size: 0.85rem; resize: none; color: #000; }
   .btn-comment-submit { align-self: flex-end; background-color: #b89b5e; color: #2c221e; border: none; padding: 5px 14px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
   .login-prompt { font-size: 0.82rem; color: #7a6552; text-align: center; margin-top: auto; }
 
